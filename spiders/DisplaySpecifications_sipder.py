@@ -11,7 +11,6 @@ API_KEY = API_KEY
 def get_scraperapi_url(url):
     payload = {'apikey': API_KEY, 'url': url}
     proxy_url = 'https://api.zenrows.com/v1/?' + urlencode(payload) + '&premium_proxy=true'
-    print(proxy_url)
     return proxy_url
 
 class DisplayspecificationsSpider(scrapy.Spider):

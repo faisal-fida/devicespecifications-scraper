@@ -1,0 +1,5 @@
+scrapy
+scrapy-crawl-once
+pymongo
+python-dotenv
+itemadapter

@@ -1,66 +1,64 @@
-# DisplaySpecifications-Scrapy
+# devicespecifications-scraper
 
-## Overview
+A Scrapy spider that collects phone and tablet specifications from devicespecifications.com and stores them in MongoDB.
 
-DisplaySpecifications-Scrapy is a web scraping project designed to extract detailed specifications of various devices from the DisplaySpecifications website. The project leverages Scrapy, a powerful web scraping framework, to navigate through the site and collect data efficiently.
+## Features
 
-## Complexities
+- Starts at the site home page, follows each brand listing, then each device page.
+- Parses every specification table on a device page into a nested dictionary (section, then row), with numbered keys when a row has several values.
+- Discards pages that did not load fully (fewer than 5 fields).
+- Fetches pages through the ZenRows scraping API (premium proxy) using your API key.
+- Skips already visited device pages with `scrapy-crawl-once`.
+- Saves each device as one MongoDB document.
 
-### Dynamic Content Handling
-- **Challenge:** Extracting data from dynamically loaded pages.
-- **Solution:** Integrated a proxy service (ZenRows) to handle dynamic content and JavaScript rendering, ensuring accurate data extraction.
+## Tech stack
 
-### Data Structure Variability
-- **Challenge:** Inconsistent data structures across different product pages.
-- **Solution:** Implemented robust parsing logic to handle variations in the HTML structure, using regular expressions and conditional checks to ensure data integrity.
+Python 3.8+, Scrapy, scrapy-crawl-once, pymongo, python-dotenv, MongoDB, ZenRows API.
 
-### Rate Limiting and IP Blocking
-- **Challenge:** Avoiding IP blocks and managing rate limits imposed by the target website.
-- **Solution:** Utilized a premium proxy service with rotating IPs and managed request rates through Scrapy's built-in settings and middleware.
+## Project structure
 
-## Getting Started
+```
+settings.py                          Scrapy and MongoDB settings, loads .env
+pipelines.py                         MongoDB pipeline
+items.py, middlewares.py             Scrapy defaults (unused)
+spiders/DisplaySpecifications_sipder.py   the spider (name: devicespecifications)
+requirements.txt
+```
 
-### Prerequisites
-- Python 3.8+
-- Scrapy
-- Dotenv
-- MongoDB
+## Setup and run
 
-### Installation
+Requirements: Python, a running MongoDB, and a ZenRows API key.
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/faisal-fida/DisplaySpecifications-Scrapy.git
-   cd DisplaySpecifications-Scrapy
-   ```
+The Scrapy settings refer to the module name `DisplaySpecifications`, so the code must live in a folder with that name, with a `scrapy.cfg` next to it:
 
-2. Install the required Python packages:
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+mkdir scraper && cd scraper
+git clone <this repo url> DisplaySpecifications
+printf '[settings]\ndefault = DisplaySpecifications.settings\n' > scrapy.cfg
+pip install -r DisplaySpecifications/requirements.txt
+```
 
-3. Set up your environment variables in a `.env` file:
-   ```plaintext
-   API_KEY=your_api_key_here
-   ```
+Environment variables (put them in a `.env` file in the folder you run from):
 
-4. Run the scraper:
-   ```bash
-   scrapy crawl devicespecifications
-   ```
+| Name | Purpose |
+|------|---------|
+| `API_KEY` | ZenRows API key used to fetch pages |
 
-## Usage
+MongoDB host, port, database and collection are set in `settings.py` (`MONGODB_SERVER`, `MONGODB_SERVER_PORT`, `MONGODB_DATABASE`, `MONGODB_COLLECTION`; defaults: localhost:27017).
 
-- The scraper will start at the main page of DisplaySpecifications and navigate through the brand and product listings, extracting detailed specifications and storing them in a MongoDB database.
+Run:
 
-## Contributing
+```bash
+scrapy crawl devicespecifications
+```
 
-We welcome contributions from the community. Please feel free to submit issues or pull requests.
+## Limitations and status
+
+- The packaging is rough: the flat layout needs the folder name and `scrapy.cfg` described above. Not tested end to end here, since it needs a paid API key and a MongoDB.
+- `ROBOTSTXT_OBEY` is `False` and `DOWNLOAD_TIMEOUT` is very high (30000 seconds). Review these and the site's terms before running.
+- Requests cost ZenRows credits (premium proxy).
+- `items.py` and `middlewares.py` are the Scrapy templates and are not used.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-Feel free to modify or expand this draft as needed. Let me know if there are any specific aspects or details you would like to emphasize.
+MIT, see [LICENSE](LICENSE).
